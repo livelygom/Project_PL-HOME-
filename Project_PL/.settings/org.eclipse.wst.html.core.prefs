@@ -1,0 +1,11 @@
+attrNamesToIgnore=
+document-type//WebContent/WEB-INF/back_home.jsp=
+document-type//WebContent/WEB-INF/index.jsp=
+document-type//WebContent/WEB-INF/register/register_form_customer.jsp=
+document-type//WebContent/WEB-INF/register/register_success_customer.jsp=
+document-type/<project>=
+eclipse.preferences.version=1
+elementNamesToIgnore=
+ignoreAttrNames=false
+ignoreElementNames=false
+use-project-settings=true

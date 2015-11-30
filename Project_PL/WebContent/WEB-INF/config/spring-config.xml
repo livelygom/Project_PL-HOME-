@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+
+	<context:component-scan base-package="kr.or.kosta.pl.vo, kr.or.kosta.pl.controller, kr.or.kosta.pl.service, kr.or.kosta.pl.dao"/>
+	<mvc:annotation-driven/>
+	
+	<mvc:view-controller path="/index.do" view-name="/WEB-INF/index.jsp"/>
+	
+	<bean name="dataSource" class="org.apache.tomcat.dbcp.dbcp2.BasicDataSource"
+				p:driverClassName="oracle.jdbc.driver.OracleDriver"
+				p:url="jdbc:oracle:thin:@127.0.0.1:1521:XE"
+				p:username="pline"
+				p:password="2222"
+				p:maxTotal="100"/>
+	<bean name="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean"
+				p:configLocation="/WEB-INF/config/mybatis-config.xml"
+				p:dataSource-ref="dataSource"/>
+	<bean name="SqlSession" class="org.mybatis.spring.SqlSessionTemplate" c:sqlSessionFactory-ref="sqlSessionFactory"/>
+</beans>

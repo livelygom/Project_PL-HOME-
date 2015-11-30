@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="adminMapper">
+ 
+	<resultMap type="admin" id="admin-resultmap">
+		<id property="adminId" column="admin_id" />
+		<result property="adminPassword" column="admin_password" />
+		<result property="adminName" column="admin_name" />
+		<result property="adminPhone" column="admin_phone" />
+	</resultMap>
+
+	<resultMap type="product" id="product-resultmap">
+		<id property="itemId" column="item_id" />
+		<result property="itemName" column="item_name" />
+		<result property="itemPrice" column="item_price" />
+		<result property="categoryId" column="category_id" />
+		<result property="categoryName" column="category_name"/>
+	</resultMap>
+
+	<resultMap type="category" id="category-resultmap">
+		<id property="categoryId" column="category_id" />
+		<result property="categoryName" column="category_name" />
+	</resultMap>
+	
+	<resultMap type="board" id="board-resultMap">
+		<id property="boardIndex" column="board_idx"/>
+		<result property="boardTitle" column="board_title"/>
+		<result property="boardDate" column="board_date"/>
+		<result property="boardReadCount" column="board_read_count"/>
+		<result property="boardContent" column="board_content"/>
+		<result property="boardWriter" column="board_writer"/>
+		<result property="boardCategory" column="board_category"/>
+		<result property="boardCategoryName" column="board_category_name"/>
+	</resultMap>
+	
+
+	<sql id="select-column-sql">
+		admin_id,admin_password,admin_name,admin_phone
+	</sql>
+	<sql id="select-sql">
+		select
+		<include refid="select-column-sql" />
+		from pl_admin
+	</sql>
+
+	<insert id="insertAdmin" parameterType="admin">
+		insert into pl_admin (
+		<include refid="select-column-sql" />
+		)
+		values (#{adminId}, #{adminPassword}, #{adminName}, #{adminPhone})
+	</insert>
+
+	<delete id="deleteAdminById" parameterType="string">
+		delete from pl_admin
+		where admin_id=#{adminId}
+	</delete>
+
+	<update id="updateAdmin" parameterType="admin">
+		update pl_admin set
+		admin_password=#{adminPassword}, admin_name=#{adminName},
+		admin_phone=#{adminPhone}
+		where admin_id=#{adminId}
+	</update>
+
+	<select id="selectAdminById" parameterType="string" resultMap="admin-resultmap">
+		<include refid="select-sql" />
+		where admin_id=#{adminId}
+	</select>
+
+	<select id="selectAdminsByName" parameterType="string"
+		resultMap="admin-resultmap">
+		<include refid="select-sql" />
+		where admin_name=#{adminName}
+	</select>
+
+	<select id="selectAdmins" parameterType="string" resultMap="admin-resultmap">
+		<include refid="select-sql" />
+		order by admin_id asc
+	</select>
+
+	<select id="selectCountAdmins" resultType="_int">
+		select count(admin_id)
+		from pl_admin
+	</select>
+
+	<!-- paging -->
+	<select id="selectAdminsPaging" parameterType="hashmap"
+		resultMap="admin-resultmap">
+		select
+		<include refid="select-column-sql" />
+		from (
+		select
+		<include refid="select-column-sql" />
+		, ceil(rownum/#{contentsPerPage}) page
+		from(
+		select
+		<include refid="select-column-sql" />
+		from pl_admin
+		order by admin_id
+		)
+		)
+		where page = #{pageNo}
+	</select>
+
+
+
+	<!-- //////////////////////물품//////////////////////////// -->
+
+
+	<sql id="itemSelect-column-sql">
+		item_id,item_name,item_price,category_id
+	</sql>
+
+	<sql id="itemSelect-sql">
+		select
+		<include refid="itemSelect-column-sql" />
+		from pl_item_info
+	</sql>
+
+	<insert id="insertProduct" parameterType="product">
+		insert into pl_item_info (
+		<include refid="itemSelect-column-sql" />
+		)
+		values (#{itemId}, #{itemName}, #{itemPrice}, #{categoryId})
+	</insert>
+
+	<delete id="deleteProductByItemId" parameterType="int">
+		delete from
+		pl_item_info where item_id=#{itemId}
+	</delete>
+
+	<update id="updateProduct" parameterType="product">
+		update pl_item_info set
+		item_name=#{itemName}, item_price=#{itemPrice},
+		category_id=#{categoryId}
+		where item_id=#{itemId}
+	</update>
+
+	<select id="selectProductByItemId" parameterType="int"
+		resultMap="product-resultmap">
+		<include refid="itemSelect-sql" />
+		where item_id=#{itemId}
+	</select>
+
+	<select id="selectProductsByItemName" parameterType="string"
+		resultMap="product-resultmap">
+		<include refid="itemSelect-sql" />
+		where item_name like '%'||#{itemName}||'%'
+	</select>
+
+	<select id="selectProducts" parameterType="string"
+		resultMap="product-resultmap">
+		<include refid="itemSelect-sql" />
+		order by item_id asc
+	</select>
+
+	<select id="selectCountProducts" resultType="_int">
+		select
+		count(item_id) from pl_item_info
+	</select>
+
+	<!-- paging -->
+	<select id="selectProductsPaging" parameterType="hashmap"
+		resultMap="product-resultmap">
+		select
+		<include refid="itemSelect-column-sql" />
+		from (select
+		<include refid="itemSelect-column-sql" />
+		, ceil(rownum/#{contentsPerPage}) page
+		from(select
+		<include refid="itemSelect-column-sql" />
+		from pl_item_info
+		order by item_id))
+		where page = #{pageNo}
+	</select>
+	
+	<!--////////////////////////////////// 게시판 관련 ///////////////////////////////////////////////////-->
+	<select id="selectBoardsPaging" parameterType="_int" resultMap="board-resultMap">
+		select board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name
+		from (
+			select ceil(rownum/10) page, board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name
+			from (
+				select board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name from pl_board where board_category=1 order by board_date desc
+			)
+		) where page = #{pageNo}
+	</select>
+	
+	<select id="selectBoardCount" resultType="_int">
+		select count(board_idx) from pl_board
+	</select>
+	
+	<select id="selectBoardInfo" parameterType="_int" resultMap="board-resultMap">
+		select board_idx, board_title, board_date, board_read_count, board_content, board_writer from pl_board where board_idx=#{index}
+	</select>
+	
+	<select id="selectNotice" resultMap="board-resultMap">
+		select board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name 
+		from (select * from pl_board where board_category=2 order by board_date desc) where rownum between 1 and 3
+	</select>
+
+
+<!-- ///////////////////////////////////////////////카테고리/////////////////////////////////////////// -->
+	<sql id="categorySelect-column-sql">
+		category_id,category_name
+	</sql>
+
+	<sql id="categorySelect-sql">
+		select
+		<include refid="categorySelect-column-sql" />
+		from PL_CATEGORY
+	</sql>
+
+
+
+	<insert id="insertCategory" parameterType="category">
+		insert into PL_CATEGORY (
+		<include refid="categorySelect-column-sql" />
+		)
+		values (#{categoryId},#{categoryName,jdbcType=VARCHAR})
+	</insert>
+
+	<select id="selectCategoryById" parameterType="int" resultMap="category-resultmap">
+		<include refid="categorySelect-sql"/>
+		where category_id=#{categoryId}
+	</select>
+	
+	<delete id="deleteCategoryById" parameterType="int">
+		delete from
+		PL_CATEGORY where category_id=#{categoryId}
+	</delete>
+	
+	
+	
+	
+	<select id="selectCategorys" parameterType="string"
+		resultMap="category-resultmap">
+		<include refid="categorySelect-sql" />
+		order by category_id asc
+	</select>
+
+	<select id="selectCountCategorys" resultType="_int">
+		select
+		count(category_id) from pl_category
+	</select>
+
+	<!-- paging -->
+	<select id="selectCategorysPaging" parameterType="hashmap"
+		resultMap="category-resultmap">
+		select
+		<include refid="categorySelect-column-sql" />
+		from (select
+		<include refid="categorySelect-column-sql" />
+		, ceil(rownum/#{contentsPerPage}) page
+		from(select
+		<include refid="categorySelect-column-sql" />
+		from pl_category
+		order by category_id))
+		where page = #{pageNo}
+	</select>
+</mapper>
+
+
+
+	
+

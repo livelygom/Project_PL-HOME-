@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="customerMapper">
+
+	<resultMap type="customer" id="customer-resultmap">
+		<id property="customerId" column="customer_id" />
+		<result property="customerPassword" column="customer_password" />
+		<result property="customerName" column="customer_name" />
+		<result property="customerAddress" column="customer_address" />
+		<result property="customerBirth" column="customer_birth" />
+		<result property="customerGender" column="customer_gender" />
+		<result property="customerPhone" column="customer_phone" />
+		<result property="customerEmail" column="customer_email" />
+		<result property="customerPoint" column="customer_point" />
+		<result property="storeId" column="store_id" />
+	</resultMap>
+	
+	<resultMap type="product" id="itemlist-resultmap">
+		<id property="itemId" column="item_id"/>
+		<result property="itemName" column="item_name"/>
+		<result property="itemPrice" column="item_price"/>
+		<result property="categoryId" column="category_id"/>
+		<result property="categoryName" column="category_name"/>
+	</resultMap>
+	
+	<resultMap type="store" id="storelist-resultmap">
+		<id property="storeId" column="store_id"/>
+		<result property="storeName" column="store_name"/>
+		<result property="ownerId" column="owner_id"/>
+		<result property="storeAddress" column="store_address"/>
+		<result property="storePhone" column="store_phone"/>
+		<result property="storeLicense" column="store_license"/>
+		<result property="storeTimeStamp" column="store_timestamp"/>
+		<result property="storeKey" column="store_key"/>
+	</resultMap>
+	
+	<resultMap type="cart" id="cartlist-resultmap">
+		<constructor>
+			<idArg column="cart_number" javaType="_int"/>
+			<arg column="customer_id" javaType="string"/>
+			<arg column="store_id" javaType="_int"/>
+			<arg column="item_id" javaType="_int"/>
+			<arg column="cart_count" javaType="_int"/>
+			<arg column="cart_date" javaType="Date"/>
+			<arg column="item_name" javaType="string"/>
+			<arg column="item_price" javaType="_int"/>
+			<arg column="category_id" javaType="_int"/>
+			<arg column="category_name" javaType="string"/>
+			<arg column="store_name" javaType="string"/>
+		</constructor>
+	</resultMap>
+	
+	<resultMap type="order" id="orderlist-resultmap">
+		<constructor>
+			<idArg column="order_number" javaType="_int"/>
+			<arg column="customer_id" javaType="string"/>
+			<arg column="store_id" javaType="_int"/>
+			<arg column="item_id" javaType="_int"/>
+			<arg column="order_count" javaType="_int"/>
+			<arg column="order_date" javaType="Date"/>
+			<arg column="order_status" javaType="_int"/>
+			<arg column="item_name" javaType="string"/>
+			<arg column="item_price" javaType="_int"/>
+			<arg column="category_id" javaType="_int"/>
+			<arg column="category_name" javaType="string"/>
+			<arg column="store_name" javaType="string"/>
+			<arg column="customer_name" javaType="string"/>
+			<arg column="customer_phone" javaType="string"/>
+		</constructor>
+	</resultMap>
+	
+	<resultMap type="board" id="board-resultMap">
+		<id property="boardIndex" column="board_idx"/>
+		<result property="boardTitle" column="board_title"/>
+		<result property="boardDate" column="board_date"/>
+		<result property="boardReadCount" column="board_read_count"/>
+		<result property="boardContent" column="board_content"/>
+		<result property="boardWriter" column="board_writer"/>
+		<result property="boardCategory" column="board_category"/>
+		<result property="boardCategoryName" column="board_category_name"/>
+	</resultMap>
+	
+	<!-- **************************선지정  참조용******************************************* -->
+	<sql id="select-column-sql">
+		customer_id,customer_password,customer_name,customer_address,customer_birth,
+		customer_gender,customer_phone,customer_email,customer_point 
+	</sql>
+	
+	<sql id="select-value-sql">
+		#{customerId}, #{customerPassword}, #{customerName}, #{customerAddress}, 
+		#{customerBirth}, #{customerGender}, #{customerPhone}, #{customerEmail}, 
+		#{customerPoint} 
+	</sql>
+	
+	<sql id="select-cart-colum-sql">
+		cart_number, customer_id, store_id, item_id,cart_count, cart_date 
+	
+	</sql>
+	
+	<sql id="select-order-colum-sql">
+		order_number, customer_id, store_id, item_id, order_count, order_date, order_status 
+	</sql>
+	
+	<!-- ***************************회원 가입******************************************** -->
+	
+	<insert id="insertCustomer" parameterType="customer">
+		insert into pl_customer(<include refid="select-column-sql"/>) 
+		values (<include refid="select-value-sql"/>)
+	</insert>
+	
+	<!-- ***************************정보 변경 11월 25일 추가(효균)***************************************** -->
+	<select id="updateCustomer" parameterType="customer">
+	update pl_customer set customer_password=#{customerPassword}, customer_name=#{customerName},
+							  customer_address=#{customerAddress}, customer_birth=#{customerBirth},
+							   customer_phone=#{customerPhone}, customer_email=#{customerEmail} 
+	where customer_id=#{customerId}
+	</select>
+			
+	<!-- ***************************고객 조회******************************************** -->
+	<select id="selectCustomerById" parameterType="string" resultMap="customer-resultmap">
+		select <include refid="select-column-sql"/> store_id from pl_customer
+		where customer_id= #{value}
+	
+	</select>
+	
+	<!-- ***************************상점조회******************************************** -->
+	<!-- 어떤 물건 개수가 0개 초과인 매장 오름차순으로 조회 -->
+	<select id="selectStoreByCount" parameterType="string" resultMap="storelist-resultmap">
+		select p.store_id, p.store_name, p.owner_id, p.store_address, p.store_phone, p.store_license
+		from pl_item_info i, pl_server_item s, pl_store p 
+		where i.item_id=s.item_id and s.store_id=p.store_id and i.item_name=#{value} 
+		and s.item_count>0 order by p.store_name asc
+	</select>
+	
+	<!-- 매장 이름으로 찾기 -->
+	<select id="findStoreName" parameterType="string" resultMap="storelist-resultmap">
+		select store_id, store_name,owner_id, store_address, store_phone, store_license, store_timestamp, store_key from pl_store	
+		where store_name like '%'||#{storeName}||'%'	 
+	</select>
+	
+	<!-- 매장 이름으로 찾기 -->
+	<select id="findStoreKey" parameterType="string" resultMap="storelist-resultmap">
+		select store_key  from pl_store	
+		where store_name like '%'||#{storeName}||'%'
+	</select>
+	
+	<select id="findStoreTime" parameterType="string" resultMap="storelist-resultmap">
+		select store_timestamp  from pl_store	
+		where store_name like '%'||#{storeName}||'%'
+	</select>
+	
+	<!--매장 아이디로 찾기-->
+	<select id = "selectStoreById" parameterType="_int" resultMap="storelist-resultmap">
+	
+		select store_id, store_name,owner_id, store_address, store_phone, store_license from pl_store 
+		where store_id = #{value}
+	</select>
+	
+	<!-- ***************************물품 조회******************************************** -->
+	<!-- index 페이지 전체 물품 출력을 위해-->
+	<select id="selectItemList" parameterType="_int" resultMap="itemlist-resultmap">
+		select i.item_id, i.item_name, i.item_price, i.category_id, c.category_name from PL_ITEM_INFO i, PL_CATEGORY c  where i.item_id=#{value} and i.category_id = c.category_id
+	</select>
+	
+	<!-- 이름으로 물품 조회 -->
+	<select id="selectItemByName" parameterType="string" resultMap="itemlist-resultmap">
+		select i.item_id, i.item_name, i.item_price, i.category_id, c.category_name from PL_ITEM_INFO i, PL_CATEGORY c  where i.item_name=#{value} and i.category_id = c.category_id
+	</select>
+	
+	<!-- 이름으로 물품 다중 조회 -->
+	<select id="selectItemByNameMany" parameterType="string" resultMap="itemlist-resultmap">
+		select i.item_id, i.item_name, i.item_price, i.category_id, c.category_name from PL_ITEM_INFO i, PL_CATEGORY c  where i.item_name like'%'||#{value}||'%' and i.category_id = c.category_id
+	</select>
+	
+	<!-- 카테고리로 조회 -->
+	<select id="selectItemListByCategory" parameterType="_int" resultMap="itemlist-resultmap">
+		select i.item_id, i.item_name, i.item_price, i.category_id, c.category_name from PL_ITEM_INFO i, PL_CATEGORY c  where i.category_id=#{value} and i.category_id = c.category_id
+	</select>
+	
+	<!-- ***************************장바구니******************************************** -->
+	<!-- 장바구니 추가 -->
+	<insert id="insertCart" parameterType="map">
+		insert into pl_cart (<include refid="select-cart-colum-sql"/>) 
+		values (cart_index_seq.nextval, #{customerId}, #{storeId}, #{itemId}, #{countItem}, sysdate)
+	</insert>
+	
+	<!-- 장바구니 삭제 -->
+	<delete id="deleteCart" parameterType="map">
+		delete from pl_cart 
+		where customer_id = #{customerId} and store_id = #{storeId} and item_id = #{itemId}
+	
+	</delete>
+	
+	<!-- 장바구니 조회 -->
+	<select id="selectCartByCustomerId" parameterType="string" resultMap="cartlist-resultmap">
+		select c.cart_number, c.customer_id, c.store_id, c.item_id, c.cart_count, c.cart_date, 
+				i.item_name, i.item_price, i.category_id, t.category_name, 
+				s.store_name 
+		from pl_cart c, pl_item_info i, pl_category t, pl_store s   
+		where c.item_id = i.item_id and i.category_id = t.category_id and c.store_id = s.store_id 
+				and c.customer_id=#{value}
+	</select>
+	
+	<!-- ***************************주문 정보******************************************** -->
+	<!-- 주문 정보 전체 조회 -->
+	<select id="selectOrderByCustomerId" parameterType="string" resultMap="orderlist-resultmap">
+		select o.order_number, o.customer_id, o.store_id, o.item_id, o.order_count, o.order_date, o.order_status, 
+				i.item_name, i.item_price, i.category_id, t.category_name, 
+				s.store_name, r.customer_name, r.customer_phone 
+		from pl_order o, pl_item_info i, pl_category t, pl_store s, pl_customer r 
+		where o.item_id = i.item_id and i.category_id = t.category_id and o.store_id = s.store_id and o.customer_id = r.customer_id 
+				and o.customer_id=#{value} and o.order_status =1
+	</select>
+	
+	<!-- 주문 추가 -->
+	<insert id="insertOrder" parameterType="map">
+		insert into pl_order (<include refid="select-order-colum-sql"/>) 
+		values (order_index_seq.nextval, #{cusotmerId}, #{storeId}, #{itemId}, #{orderCount}, sysdate, #{orderStatus})
+	</insert>
+	
+	
+	<!-- ***************************게시판******************************************** -->
+	<!-- 게시판 페이지 -->
+	<!--////////////////////////////////// 게시판 관련 ///////////////////////////////////////////////////-->
+	<select id="selectBoardsPaging" parameterType="_int" resultMap="board-resultMap">
+		select board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name
+		from (
+			select ceil(rownum/10) page, board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name
+			from (
+				select board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name from pl_board where board_category=1 order by board_date desc
+			)
+		) where page = #{pageNo}
+	</select>
+	
+	<select id="selectBoardCount" resultType="_int">
+		select count(board_idx) from pl_board
+	</select>
+	
+	<select id="selectBoardInfo" parameterType="_int" resultMap="board-resultMap">
+		select board_idx, board_title, board_date, board_read_count, board_content, board_writer from pl_board where board_idx=#{index}
+	</select>
+	
+	<select id="selectNotice" resultMap="board-resultMap">
+		select board_idx, board_title, board_date, board_read_count, board_content, board_writer, board_category, board_category_name 
+		from (select * from pl_board where board_category=2 order by board_date desc) where rownum between 1 and 3
+	</select>
+</mapper>

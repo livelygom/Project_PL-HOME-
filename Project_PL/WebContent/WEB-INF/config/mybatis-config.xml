@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+	
+	<!-- 별칭설정 -->
+	<typeAliases>
+		<!-- ex)다음과 같이도 별칭을 설정할 수 있다. typeAlias type="customer.domain.Customer" alias="customer" -->
+		<package name="kr.or.kosta.pl.vo"/> <!-- 클래스 첫글자 소문자로 바꾼걸 알리아스 준거 -->
+	</typeAliases>
+
+	<environments default="local">
+		<environment id="local">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="oracle.jdbc.driver.OracleDriver" />
+				<property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:XE" />
+				<property name="username" value="pline" />
+				<property name="password" value="2222" />
+				<property name="poolMaximumActiveConnections" value="50"/>
+				<property name="poolMaximumIdleConnections" value="15"/>
+			</dataSource>
+		</environment>
+	</environments>
+	
+	
+
+	<!-- 아래 경로의 mapper파일들을 현재 설정파일에서 알기 위해 아래와 같이 알려줌 -->
+	<mappers>
+		<mapper resource="kr/or/kosta/pl/config/mapper/customerMapper.xml"/>
+		<mapper resource="kr/or/kosta/pl/config/mapper/ownerMapper.xml"/>
+		<mapper resource="kr/or/kosta/pl/config/mapper/adminMapper.xml"/>
+	</mappers>
+</configuration>
